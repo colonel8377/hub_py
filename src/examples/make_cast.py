@@ -1,14 +1,12 @@
 import grpc
 
-import hub_py.protobuf_patch as _
-from hub_py.builders import make_cast_add
-from hub_py.generated.message_pb2 import (
+from src.hub_py.builders import make_cast_add
+from src.hub_py.generated.message_pb2 import (
     MessageData,
     CastAddBody,
     Embed,
 )
-
-from .utils import get_env_signer, get_env_fid, get_env_client, get_env_network
+from utils import get_env_signer, get_env_fid, get_env_client, get_env_network
 
 
 def main() -> None:
@@ -81,7 +79,7 @@ def main() -> None:
             )
             print(result.data.cast_add_body)
         except grpc.RpcError as e:
-            print(e.details())
+            print(e)
 
 
 if __name__ == "__main__":

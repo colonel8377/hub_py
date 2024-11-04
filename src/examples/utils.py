@@ -5,12 +5,12 @@ from nacl.signing import SigningKey
 from nacl.encoding import HexEncoder
 from eth_account import Account
 
-from hub_py.signers import Ed25519Signer, EIP712Signer
-from hub_py.client import get_insecure_client, get_ssl_client
-from hub_py.generated.rpc_pb2_grpc import HubServiceStub
-from hub_py.generated.message_pb2 import FarcasterNetwork
+from src.hub_py.signers import Ed25519Signer, EIP712Signer
+from src.hub_py.client import get_insecure_client, get_ssl_client
+from src.hub_py.generated.rpc_pb2_grpc import HubServiceStub
+from src.hub_py.generated.message_pb2 import FarcasterNetwork
 
-load_dotenv()
+load_dotenv('../../.env')
 
 
 def get_env_client(use_async: bool = False) -> HubServiceStub:

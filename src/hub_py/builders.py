@@ -1,17 +1,18 @@
 from blake3 import blake3
 
-from hub_py.time import get_farcaster_time
-from hub_py.signers import Signer, Ed25519Signer
-from hub_py.generated.message_pb2 import (
+from src.hub_py.generated.onchain_event_pb2 import SignerEventBody
+from src.hub_py.time import get_farcaster_time
+from src.hub_py.signers import Signer, Ed25519Signer
+from src.hub_py.generated.message_pb2 import (
     Message,
     MessageData,
     HashScheme,
     MessageType,
-    SignerAddBody,
+    # SignerAddBody,
     UserDataBody,
     CastAddBody,
 )
-from hub_py.protobuf_patch import patched_serialize_to_string
+from src.hub_py.protobuf_patch import patched_serialize_to_string
 
 
 def _make_message(data: MessageData, signer: Signer) -> Message:
@@ -28,20 +29,6 @@ def _make_message(data: MessageData, signer: Signer) -> Message:
         signature=signer.sign_hash(hash),
         signature_scheme=signer.signature_scheme(),
         signer=signer.public_key(),
-    )
-
-
-def make_signer_add(
-    data: MessageData, signer: Signer, signer_add: Ed25519Signer
-) -> Message:
-    # Create a new MessageData object and copy the provided data
-    message_data = MessageData()
-    message_data.CopyFrom(data)
-    message_data.type = MessageType.MESSAGE_TYPE_SIGNER_ADD
-    message_data.signer_add_body.CopyFrom(SignerAddBody(signer=signer_add.public_key()))
-    return _make_message(
-        message_data,
-        signer,
     )
 
 

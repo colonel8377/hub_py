@@ -1,6 +1,6 @@
 import grpc
 
-from hub_py.generated.rpc_pb2_grpc import HubServiceStub
+from src.hub_py.generated.rpc_pb2_grpc import HubServiceStub
 
 
 def get_insecure_client(address: str, use_async: bool = False) -> HubServiceStub:

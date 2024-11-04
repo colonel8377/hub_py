@@ -3,14 +3,22 @@
 import grpc
 
 import hub_event_pb2 as hub__event__pb2
-import id_registry_event_pb2 as id__registry__event__pb2
 import message_pb2 as message__pb2
-import name_registry_event_pb2 as name__registry__event__pb2
+import onchain_event_pb2 as onchain__event__pb2
 import request_response_pb2 as request__response__pb2
+import username_proof_pb2 as username__proof__pb2
 
 
 class HubServiceStub(object):
-    """Missing associated documentation comment in .proto file."""
+    """Note about http-api annotations:
+    The `httpServer.ts` class implements a HTTP API wrapper on top of this gRPC API.
+    The annotations below are used to verify that all the HTTP API endpoints are implemented.
+    If you are adding a new RPC method, if there needs to be a corresponding HTTP API endpoint, 
+    add the annotation to the method. @http-api: none means that there is no corresponding HTTP API
+    If there is no annotation, we assume there is a corresponding HTTP API endpoint with the same name as the RPC method
+    Please see `httpServer.ts` for more details
+
+    """
 
     def __init__(self, channel):
         """Constructor.
@@ -22,6 +30,11 @@ class HubServiceStub(object):
                 '/HubService/SubmitMessage',
                 request_serializer=message__pb2.Message.SerializeToString,
                 response_deserializer=message__pb2.Message.FromString,
+                )
+        self.ValidateMessage = channel.unary_unary(
+                '/HubService/ValidateMessage',
+                request_serializer=message__pb2.Message.SerializeToString,
+                response_deserializer=request__response__pb2.ValidationResponse.FromString,
                 )
         self.Subscribe = channel.unary_stream(
                 '/HubService/Subscribe',
@@ -83,10 +96,15 @@ class HubServiceStub(object):
                 request_serializer=request__response__pb2.FidRequest.SerializeToString,
                 response_deserializer=request__response__pb2.MessagesResponse.FromString,
                 )
-        self.GetNameRegistryEvent = channel.unary_unary(
-                '/HubService/GetNameRegistryEvent',
-                request_serializer=request__response__pb2.NameRegistryEventRequest.SerializeToString,
-                response_deserializer=name__registry__event__pb2.NameRegistryEvent.FromString,
+        self.GetUsernameProof = channel.unary_unary(
+                '/HubService/GetUsernameProof',
+                request_serializer=request__response__pb2.UsernameProofRequest.SerializeToString,
+                response_deserializer=username__proof__pb2.UserNameProof.FromString,
+                )
+        self.GetUserNameProofsByFid = channel.unary_unary(
+                '/HubService/GetUserNameProofsByFid',
+                request_serializer=request__response__pb2.FidRequest.SerializeToString,
+                response_deserializer=request__response__pb2.UsernameProofsResponse.FromString,
                 )
         self.GetVerification = channel.unary_unary(
                 '/HubService/GetVerification',
@@ -98,25 +116,35 @@ class HubServiceStub(object):
                 request_serializer=request__response__pb2.FidRequest.SerializeToString,
                 response_deserializer=request__response__pb2.MessagesResponse.FromString,
                 )
-        self.GetSigner = channel.unary_unary(
-                '/HubService/GetSigner',
+        self.GetOnChainSigner = channel.unary_unary(
+                '/HubService/GetOnChainSigner',
                 request_serializer=request__response__pb2.SignerRequest.SerializeToString,
-                response_deserializer=message__pb2.Message.FromString,
+                response_deserializer=onchain__event__pb2.OnChainEvent.FromString,
                 )
-        self.GetSignersByFid = channel.unary_unary(
-                '/HubService/GetSignersByFid',
+        self.GetOnChainSignersByFid = channel.unary_unary(
+                '/HubService/GetOnChainSignersByFid',
                 request_serializer=request__response__pb2.FidRequest.SerializeToString,
-                response_deserializer=request__response__pb2.MessagesResponse.FromString,
+                response_deserializer=request__response__pb2.OnChainEventResponse.FromString,
                 )
-        self.GetIdRegistryEvent = channel.unary_unary(
-                '/HubService/GetIdRegistryEvent',
-                request_serializer=request__response__pb2.IdRegistryEventRequest.SerializeToString,
-                response_deserializer=id__registry__event__pb2.IdRegistryEvent.FromString,
+        self.GetOnChainEvents = channel.unary_unary(
+                '/HubService/GetOnChainEvents',
+                request_serializer=request__response__pb2.OnChainEventRequest.SerializeToString,
+                response_deserializer=request__response__pb2.OnChainEventResponse.FromString,
                 )
-        self.GetIdRegistryEventByAddress = channel.unary_unary(
-                '/HubService/GetIdRegistryEventByAddress',
+        self.GetIdRegistryOnChainEvent = channel.unary_unary(
+                '/HubService/GetIdRegistryOnChainEvent',
+                request_serializer=request__response__pb2.FidRequest.SerializeToString,
+                response_deserializer=onchain__event__pb2.OnChainEvent.FromString,
+                )
+        self.GetIdRegistryOnChainEventByAddress = channel.unary_unary(
+                '/HubService/GetIdRegistryOnChainEventByAddress',
                 request_serializer=request__response__pb2.IdRegistryEventByAddressRequest.SerializeToString,
-                response_deserializer=id__registry__event__pb2.IdRegistryEvent.FromString,
+                response_deserializer=onchain__event__pb2.OnChainEvent.FromString,
+                )
+        self.GetCurrentStorageLimitsByFid = channel.unary_unary(
+                '/HubService/GetCurrentStorageLimitsByFid',
+                request_serializer=request__response__pb2.FidRequest.SerializeToString,
+                response_deserializer=request__response__pb2.StorageLimitsResponse.FromString,
                 )
         self.GetFids = channel.unary_unary(
                 '/HubService/GetFids',
@@ -140,38 +168,58 @@ class HubServiceStub(object):
                 )
         self.GetAllCastMessagesByFid = channel.unary_unary(
                 '/HubService/GetAllCastMessagesByFid',
-                request_serializer=request__response__pb2.FidRequest.SerializeToString,
+                request_serializer=request__response__pb2.FidTimestampRequest.SerializeToString,
                 response_deserializer=request__response__pb2.MessagesResponse.FromString,
                 )
         self.GetAllReactionMessagesByFid = channel.unary_unary(
                 '/HubService/GetAllReactionMessagesByFid',
-                request_serializer=request__response__pb2.FidRequest.SerializeToString,
+                request_serializer=request__response__pb2.FidTimestampRequest.SerializeToString,
                 response_deserializer=request__response__pb2.MessagesResponse.FromString,
                 )
         self.GetAllVerificationMessagesByFid = channel.unary_unary(
                 '/HubService/GetAllVerificationMessagesByFid',
-                request_serializer=request__response__pb2.FidRequest.SerializeToString,
-                response_deserializer=request__response__pb2.MessagesResponse.FromString,
-                )
-        self.GetAllSignerMessagesByFid = channel.unary_unary(
-                '/HubService/GetAllSignerMessagesByFid',
-                request_serializer=request__response__pb2.FidRequest.SerializeToString,
+                request_serializer=request__response__pb2.FidTimestampRequest.SerializeToString,
                 response_deserializer=request__response__pb2.MessagesResponse.FromString,
                 )
         self.GetAllUserDataMessagesByFid = channel.unary_unary(
                 '/HubService/GetAllUserDataMessagesByFid',
-                request_serializer=request__response__pb2.FidRequest.SerializeToString,
+                request_serializer=request__response__pb2.FidTimestampRequest.SerializeToString,
                 response_deserializer=request__response__pb2.MessagesResponse.FromString,
                 )
         self.GetAllLinkMessagesByFid = channel.unary_unary(
                 '/HubService/GetAllLinkMessagesByFid',
+                request_serializer=request__response__pb2.FidTimestampRequest.SerializeToString,
+                response_deserializer=request__response__pb2.MessagesResponse.FromString,
+                )
+        self.GetLinkCompactStateMessageByFid = channel.unary_unary(
+                '/HubService/GetLinkCompactStateMessageByFid',
                 request_serializer=request__response__pb2.FidRequest.SerializeToString,
                 response_deserializer=request__response__pb2.MessagesResponse.FromString,
+                )
+        self.SubmitBulkMessages = channel.unary_unary(
+                '/HubService/SubmitBulkMessages',
+                request_serializer=request__response__pb2.SubmitBulkMessagesRequest.SerializeToString,
+                response_deserializer=request__response__pb2.SubmitBulkMessagesResponse.FromString,
                 )
         self.GetInfo = channel.unary_unary(
                 '/HubService/GetInfo',
                 request_serializer=request__response__pb2.HubInfoRequest.SerializeToString,
                 response_deserializer=request__response__pb2.HubInfoResponse.FromString,
+                )
+        self.GetCurrentPeers = channel.unary_unary(
+                '/HubService/GetCurrentPeers',
+                request_serializer=request__response__pb2.Empty.SerializeToString,
+                response_deserializer=request__response__pb2.ContactInfoResponse.FromString,
+                )
+        self.StopSync = channel.unary_unary(
+                '/HubService/StopSync',
+                request_serializer=request__response__pb2.Empty.SerializeToString,
+                response_deserializer=request__response__pb2.SyncStatusResponse.FromString,
+                )
+        self.ForceSync = channel.unary_unary(
+                '/HubService/ForceSync',
+                request_serializer=request__response__pb2.SyncStatusRequest.SerializeToString,
+                response_deserializer=request__response__pb2.SyncStatusResponse.FromString,
                 )
         self.GetSyncStatus = channel.unary_unary(
                 '/HubService/GetSyncStatus',
@@ -198,10 +246,28 @@ class HubServiceStub(object):
                 request_serializer=request__response__pb2.TrieNodePrefix.SerializeToString,
                 response_deserializer=request__response__pb2.TrieNodeSnapshotResponse.FromString,
                 )
+        self.StreamSync = channel.stream_stream(
+                '/HubService/StreamSync',
+                request_serializer=request__response__pb2.StreamSyncRequest.SerializeToString,
+                response_deserializer=request__response__pb2.StreamSyncResponse.FromString,
+                )
+        self.StreamFetch = channel.stream_stream(
+                '/HubService/StreamFetch',
+                request_serializer=request__response__pb2.StreamFetchRequest.SerializeToString,
+                response_deserializer=request__response__pb2.StreamFetchResponse.FromString,
+                )
 
 
 class HubServiceServicer(object):
-    """Missing associated documentation comment in .proto file."""
+    """Note about http-api annotations:
+    The `httpServer.ts` class implements a HTTP API wrapper on top of this gRPC API.
+    The annotations below are used to verify that all the HTTP API endpoints are implemented.
+    If you are adding a new RPC method, if there needs to be a corresponding HTTP API endpoint, 
+    add the annotation to the method. @http-api: none means that there is no corresponding HTTP API
+    If there is no annotation, we assume there is a corresponding HTTP API endpoint with the same name as the RPC method
+    Please see `httpServer.ts` for more details
+
+    """
 
     def SubmitMessage(self, request, context):
         """Submit Methods
@@ -210,21 +276,31 @@ class HubServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def ValidateMessage(self, request, context):
+        """Validation Methods
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def Subscribe(self, request, context):
         """Event Methods
+        @http-api: none
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def GetEvent(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """@http-api: events
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def GetCast(self, request, context):
         """Casts
+        @http-api: castById
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -250,6 +326,7 @@ class HubServiceServicer(object):
 
     def GetReaction(self, request, context):
         """Reactions
+        @http-api: reactionById
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -276,6 +353,7 @@ class HubServiceServicer(object):
 
     def GetUserData(self, request, context):
         """User Data
+        @http-api: none
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -287,7 +365,15 @@ class HubServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def GetNameRegistryEvent(self, request, context):
+    def GetUsernameProof(self, request, context):
+        """Username Proof
+        @http-api: userNameProofByName
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetUserNameProofsByFid(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -295,6 +381,7 @@ class HubServiceServicer(object):
 
     def GetVerification(self, request, context):
         """Verifications
+        @http-api: none
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -306,27 +393,44 @@ class HubServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def GetSigner(self, request, context):
-        """Signer
+    def GetOnChainSigner(self, request, context):
+        """OnChain Events
+        @http-api: none
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def GetSignersByFid(self, request, context):
+    def GetOnChainSignersByFid(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def GetIdRegistryEvent(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+    def GetOnChainEvents(self, request, context):
+        """@http-api: none
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def GetIdRegistryEventByAddress(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+    def GetIdRegistryOnChainEvent(self, request, context):
+        """@http-api: none
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetIdRegistryOnChainEventByAddress(self, request, context):
+        """@http-api: onChainIdRegistryEventByAddress
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetCurrentStorageLimitsByFid(self, request, context):
+        """@http-api: storageLimitsByFid
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -339,6 +443,7 @@ class HubServiceServicer(object):
 
     def GetLink(self, request, context):
         """Links
+        @http-api: linkById
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -351,44 +456,60 @@ class HubServiceServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def GetLinksByTarget(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """@http-api: linksByTargetFid
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def GetAllCastMessagesByFid(self, request, context):
         """Bulk Methods
+        The Bulk methods don't have corresponding HTTP API endpoints because the 
+        regular endpoints can be used to get all the messages
+        @http-api: none
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def GetAllReactionMessagesByFid(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """@http-api: none
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def GetAllVerificationMessagesByFid(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def GetAllSignerMessagesByFid(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """@http-api: none
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def GetAllUserDataMessagesByFid(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """@http-api: none
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def GetAllLinkMessagesByFid(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """@http-api: none
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetLinkCompactStateMessageByFid(self, request, context):
+        """@http-api: none
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def SubmitBulkMessages(self, request, context):
+        """@http-api: none
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -400,32 +521,72 @@ class HubServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def GetSyncStatus(self, request, context):
+    def GetCurrentPeers(self, request, context):
         """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def StopSync(self, request, context):
+        """@http-api: none
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ForceSync(self, request, context):
+        """This is experimental, do not rely on this endpoint existing in the future
+        @http-api: none
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetSyncStatus(self, request, context):
+        """@http-api: none
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def GetAllSyncIdsByPrefix(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """@http-api: none
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def GetAllMessagesBySyncIds(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """@http-api: none
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def GetSyncMetadataByPrefix(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """@http-api: none
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def GetSyncSnapshotByPrefix(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """@http-api: none
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def StreamSync(self, request_iterator, context):
+        """@http-api: none
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def StreamFetch(self, request_iterator, context):
+        """@http-api: none
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -437,6 +598,11 @@ def add_HubServiceServicer_to_server(servicer, server):
                     servicer.SubmitMessage,
                     request_deserializer=message__pb2.Message.FromString,
                     response_serializer=message__pb2.Message.SerializeToString,
+            ),
+            'ValidateMessage': grpc.unary_unary_rpc_method_handler(
+                    servicer.ValidateMessage,
+                    request_deserializer=message__pb2.Message.FromString,
+                    response_serializer=request__response__pb2.ValidationResponse.SerializeToString,
             ),
             'Subscribe': grpc.unary_stream_rpc_method_handler(
                     servicer.Subscribe,
@@ -498,10 +664,15 @@ def add_HubServiceServicer_to_server(servicer, server):
                     request_deserializer=request__response__pb2.FidRequest.FromString,
                     response_serializer=request__response__pb2.MessagesResponse.SerializeToString,
             ),
-            'GetNameRegistryEvent': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetNameRegistryEvent,
-                    request_deserializer=request__response__pb2.NameRegistryEventRequest.FromString,
-                    response_serializer=name__registry__event__pb2.NameRegistryEvent.SerializeToString,
+            'GetUsernameProof': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetUsernameProof,
+                    request_deserializer=request__response__pb2.UsernameProofRequest.FromString,
+                    response_serializer=username__proof__pb2.UserNameProof.SerializeToString,
+            ),
+            'GetUserNameProofsByFid': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetUserNameProofsByFid,
+                    request_deserializer=request__response__pb2.FidRequest.FromString,
+                    response_serializer=request__response__pb2.UsernameProofsResponse.SerializeToString,
             ),
             'GetVerification': grpc.unary_unary_rpc_method_handler(
                     servicer.GetVerification,
@@ -513,25 +684,35 @@ def add_HubServiceServicer_to_server(servicer, server):
                     request_deserializer=request__response__pb2.FidRequest.FromString,
                     response_serializer=request__response__pb2.MessagesResponse.SerializeToString,
             ),
-            'GetSigner': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetSigner,
+            'GetOnChainSigner': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetOnChainSigner,
                     request_deserializer=request__response__pb2.SignerRequest.FromString,
-                    response_serializer=message__pb2.Message.SerializeToString,
+                    response_serializer=onchain__event__pb2.OnChainEvent.SerializeToString,
             ),
-            'GetSignersByFid': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetSignersByFid,
+            'GetOnChainSignersByFid': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetOnChainSignersByFid,
                     request_deserializer=request__response__pb2.FidRequest.FromString,
-                    response_serializer=request__response__pb2.MessagesResponse.SerializeToString,
+                    response_serializer=request__response__pb2.OnChainEventResponse.SerializeToString,
             ),
-            'GetIdRegistryEvent': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetIdRegistryEvent,
-                    request_deserializer=request__response__pb2.IdRegistryEventRequest.FromString,
-                    response_serializer=id__registry__event__pb2.IdRegistryEvent.SerializeToString,
+            'GetOnChainEvents': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetOnChainEvents,
+                    request_deserializer=request__response__pb2.OnChainEventRequest.FromString,
+                    response_serializer=request__response__pb2.OnChainEventResponse.SerializeToString,
             ),
-            'GetIdRegistryEventByAddress': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetIdRegistryEventByAddress,
+            'GetIdRegistryOnChainEvent': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetIdRegistryOnChainEvent,
+                    request_deserializer=request__response__pb2.FidRequest.FromString,
+                    response_serializer=onchain__event__pb2.OnChainEvent.SerializeToString,
+            ),
+            'GetIdRegistryOnChainEventByAddress': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetIdRegistryOnChainEventByAddress,
                     request_deserializer=request__response__pb2.IdRegistryEventByAddressRequest.FromString,
-                    response_serializer=id__registry__event__pb2.IdRegistryEvent.SerializeToString,
+                    response_serializer=onchain__event__pb2.OnChainEvent.SerializeToString,
+            ),
+            'GetCurrentStorageLimitsByFid': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetCurrentStorageLimitsByFid,
+                    request_deserializer=request__response__pb2.FidRequest.FromString,
+                    response_serializer=request__response__pb2.StorageLimitsResponse.SerializeToString,
             ),
             'GetFids': grpc.unary_unary_rpc_method_handler(
                     servicer.GetFids,
@@ -555,38 +736,58 @@ def add_HubServiceServicer_to_server(servicer, server):
             ),
             'GetAllCastMessagesByFid': grpc.unary_unary_rpc_method_handler(
                     servicer.GetAllCastMessagesByFid,
-                    request_deserializer=request__response__pb2.FidRequest.FromString,
+                    request_deserializer=request__response__pb2.FidTimestampRequest.FromString,
                     response_serializer=request__response__pb2.MessagesResponse.SerializeToString,
             ),
             'GetAllReactionMessagesByFid': grpc.unary_unary_rpc_method_handler(
                     servicer.GetAllReactionMessagesByFid,
-                    request_deserializer=request__response__pb2.FidRequest.FromString,
+                    request_deserializer=request__response__pb2.FidTimestampRequest.FromString,
                     response_serializer=request__response__pb2.MessagesResponse.SerializeToString,
             ),
             'GetAllVerificationMessagesByFid': grpc.unary_unary_rpc_method_handler(
                     servicer.GetAllVerificationMessagesByFid,
-                    request_deserializer=request__response__pb2.FidRequest.FromString,
-                    response_serializer=request__response__pb2.MessagesResponse.SerializeToString,
-            ),
-            'GetAllSignerMessagesByFid': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetAllSignerMessagesByFid,
-                    request_deserializer=request__response__pb2.FidRequest.FromString,
+                    request_deserializer=request__response__pb2.FidTimestampRequest.FromString,
                     response_serializer=request__response__pb2.MessagesResponse.SerializeToString,
             ),
             'GetAllUserDataMessagesByFid': grpc.unary_unary_rpc_method_handler(
                     servicer.GetAllUserDataMessagesByFid,
-                    request_deserializer=request__response__pb2.FidRequest.FromString,
+                    request_deserializer=request__response__pb2.FidTimestampRequest.FromString,
                     response_serializer=request__response__pb2.MessagesResponse.SerializeToString,
             ),
             'GetAllLinkMessagesByFid': grpc.unary_unary_rpc_method_handler(
                     servicer.GetAllLinkMessagesByFid,
+                    request_deserializer=request__response__pb2.FidTimestampRequest.FromString,
+                    response_serializer=request__response__pb2.MessagesResponse.SerializeToString,
+            ),
+            'GetLinkCompactStateMessageByFid': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetLinkCompactStateMessageByFid,
                     request_deserializer=request__response__pb2.FidRequest.FromString,
                     response_serializer=request__response__pb2.MessagesResponse.SerializeToString,
+            ),
+            'SubmitBulkMessages': grpc.unary_unary_rpc_method_handler(
+                    servicer.SubmitBulkMessages,
+                    request_deserializer=request__response__pb2.SubmitBulkMessagesRequest.FromString,
+                    response_serializer=request__response__pb2.SubmitBulkMessagesResponse.SerializeToString,
             ),
             'GetInfo': grpc.unary_unary_rpc_method_handler(
                     servicer.GetInfo,
                     request_deserializer=request__response__pb2.HubInfoRequest.FromString,
                     response_serializer=request__response__pb2.HubInfoResponse.SerializeToString,
+            ),
+            'GetCurrentPeers': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetCurrentPeers,
+                    request_deserializer=request__response__pb2.Empty.FromString,
+                    response_serializer=request__response__pb2.ContactInfoResponse.SerializeToString,
+            ),
+            'StopSync': grpc.unary_unary_rpc_method_handler(
+                    servicer.StopSync,
+                    request_deserializer=request__response__pb2.Empty.FromString,
+                    response_serializer=request__response__pb2.SyncStatusResponse.SerializeToString,
+            ),
+            'ForceSync': grpc.unary_unary_rpc_method_handler(
+                    servicer.ForceSync,
+                    request_deserializer=request__response__pb2.SyncStatusRequest.FromString,
+                    response_serializer=request__response__pb2.SyncStatusResponse.SerializeToString,
             ),
             'GetSyncStatus': grpc.unary_unary_rpc_method_handler(
                     servicer.GetSyncStatus,
@@ -613,6 +814,16 @@ def add_HubServiceServicer_to_server(servicer, server):
                     request_deserializer=request__response__pb2.TrieNodePrefix.FromString,
                     response_serializer=request__response__pb2.TrieNodeSnapshotResponse.SerializeToString,
             ),
+            'StreamSync': grpc.stream_stream_rpc_method_handler(
+                    servicer.StreamSync,
+                    request_deserializer=request__response__pb2.StreamSyncRequest.FromString,
+                    response_serializer=request__response__pb2.StreamSyncResponse.SerializeToString,
+            ),
+            'StreamFetch': grpc.stream_stream_rpc_method_handler(
+                    servicer.StreamFetch,
+                    request_deserializer=request__response__pb2.StreamFetchRequest.FromString,
+                    response_serializer=request__response__pb2.StreamFetchResponse.SerializeToString,
+            ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
             'HubService', rpc_method_handlers)
@@ -621,7 +832,15 @@ def add_HubServiceServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class HubService(object):
-    """Missing associated documentation comment in .proto file."""
+    """Note about http-api annotations:
+    The `httpServer.ts` class implements a HTTP API wrapper on top of this gRPC API.
+    The annotations below are used to verify that all the HTTP API endpoints are implemented.
+    If you are adding a new RPC method, if there needs to be a corresponding HTTP API endpoint, 
+    add the annotation to the method. @http-api: none means that there is no corresponding HTTP API
+    If there is no annotation, we assume there is a corresponding HTTP API endpoint with the same name as the RPC method
+    Please see `httpServer.ts` for more details
+
+    """
 
     @staticmethod
     def SubmitMessage(request,
@@ -637,6 +856,23 @@ class HubService(object):
         return grpc.experimental.unary_unary(request, target, '/HubService/SubmitMessage',
             message__pb2.Message.SerializeToString,
             message__pb2.Message.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def ValidateMessage(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/HubService/ValidateMessage',
+            message__pb2.Message.SerializeToString,
+            request__response__pb2.ValidationResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -845,7 +1081,7 @@ class HubService(object):
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
-    def GetNameRegistryEvent(request,
+    def GetUsernameProof(request,
             target,
             options=(),
             channel_credentials=None,
@@ -855,9 +1091,26 @@ class HubService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/HubService/GetNameRegistryEvent',
-            request__response__pb2.NameRegistryEventRequest.SerializeToString,
-            name__registry__event__pb2.NameRegistryEvent.FromString,
+        return grpc.experimental.unary_unary(request, target, '/HubService/GetUsernameProof',
+            request__response__pb2.UsernameProofRequest.SerializeToString,
+            username__proof__pb2.UserNameProof.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def GetUserNameProofsByFid(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/HubService/GetUserNameProofsByFid',
+            request__response__pb2.FidRequest.SerializeToString,
+            request__response__pb2.UsernameProofsResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -896,7 +1149,7 @@ class HubService(object):
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
-    def GetSigner(request,
+    def GetOnChainSigner(request,
             target,
             options=(),
             channel_credentials=None,
@@ -906,14 +1159,14 @@ class HubService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/HubService/GetSigner',
+        return grpc.experimental.unary_unary(request, target, '/HubService/GetOnChainSigner',
             request__response__pb2.SignerRequest.SerializeToString,
-            message__pb2.Message.FromString,
+            onchain__event__pb2.OnChainEvent.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
-    def GetSignersByFid(request,
+    def GetOnChainSignersByFid(request,
             target,
             options=(),
             channel_credentials=None,
@@ -923,14 +1176,14 @@ class HubService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/HubService/GetSignersByFid',
+        return grpc.experimental.unary_unary(request, target, '/HubService/GetOnChainSignersByFid',
             request__response__pb2.FidRequest.SerializeToString,
-            request__response__pb2.MessagesResponse.FromString,
+            request__response__pb2.OnChainEventResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
-    def GetIdRegistryEvent(request,
+    def GetOnChainEvents(request,
             target,
             options=(),
             channel_credentials=None,
@@ -940,14 +1193,14 @@ class HubService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/HubService/GetIdRegistryEvent',
-            request__response__pb2.IdRegistryEventRequest.SerializeToString,
-            id__registry__event__pb2.IdRegistryEvent.FromString,
+        return grpc.experimental.unary_unary(request, target, '/HubService/GetOnChainEvents',
+            request__response__pb2.OnChainEventRequest.SerializeToString,
+            request__response__pb2.OnChainEventResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
-    def GetIdRegistryEventByAddress(request,
+    def GetIdRegistryOnChainEvent(request,
             target,
             options=(),
             channel_credentials=None,
@@ -957,9 +1210,43 @@ class HubService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/HubService/GetIdRegistryEventByAddress',
+        return grpc.experimental.unary_unary(request, target, '/HubService/GetIdRegistryOnChainEvent',
+            request__response__pb2.FidRequest.SerializeToString,
+            onchain__event__pb2.OnChainEvent.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def GetIdRegistryOnChainEventByAddress(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/HubService/GetIdRegistryOnChainEventByAddress',
             request__response__pb2.IdRegistryEventByAddressRequest.SerializeToString,
-            id__registry__event__pb2.IdRegistryEvent.FromString,
+            onchain__event__pb2.OnChainEvent.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def GetCurrentStorageLimitsByFid(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/HubService/GetCurrentStorageLimitsByFid',
+            request__response__pb2.FidRequest.SerializeToString,
+            request__response__pb2.StorageLimitsResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -1043,7 +1330,7 @@ class HubService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/HubService/GetAllCastMessagesByFid',
-            request__response__pb2.FidRequest.SerializeToString,
+            request__response__pb2.FidTimestampRequest.SerializeToString,
             request__response__pb2.MessagesResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
@@ -1060,7 +1347,7 @@ class HubService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/HubService/GetAllReactionMessagesByFid',
-            request__response__pb2.FidRequest.SerializeToString,
+            request__response__pb2.FidTimestampRequest.SerializeToString,
             request__response__pb2.MessagesResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
@@ -1077,24 +1364,7 @@ class HubService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/HubService/GetAllVerificationMessagesByFid',
-            request__response__pb2.FidRequest.SerializeToString,
-            request__response__pb2.MessagesResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def GetAllSignerMessagesByFid(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/HubService/GetAllSignerMessagesByFid',
-            request__response__pb2.FidRequest.SerializeToString,
+            request__response__pb2.FidTimestampRequest.SerializeToString,
             request__response__pb2.MessagesResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
@@ -1111,7 +1381,7 @@ class HubService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/HubService/GetAllUserDataMessagesByFid',
-            request__response__pb2.FidRequest.SerializeToString,
+            request__response__pb2.FidTimestampRequest.SerializeToString,
             request__response__pb2.MessagesResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
@@ -1128,8 +1398,42 @@ class HubService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/HubService/GetAllLinkMessagesByFid',
+            request__response__pb2.FidTimestampRequest.SerializeToString,
+            request__response__pb2.MessagesResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def GetLinkCompactStateMessageByFid(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/HubService/GetLinkCompactStateMessageByFid',
             request__response__pb2.FidRequest.SerializeToString,
             request__response__pb2.MessagesResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def SubmitBulkMessages(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/HubService/SubmitBulkMessages',
+            request__response__pb2.SubmitBulkMessagesRequest.SerializeToString,
+            request__response__pb2.SubmitBulkMessagesResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -1147,6 +1451,57 @@ class HubService(object):
         return grpc.experimental.unary_unary(request, target, '/HubService/GetInfo',
             request__response__pb2.HubInfoRequest.SerializeToString,
             request__response__pb2.HubInfoResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def GetCurrentPeers(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/HubService/GetCurrentPeers',
+            request__response__pb2.Empty.SerializeToString,
+            request__response__pb2.ContactInfoResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def StopSync(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/HubService/StopSync',
+            request__response__pb2.Empty.SerializeToString,
+            request__response__pb2.SyncStatusResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def ForceSync(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/HubService/ForceSync',
+            request__response__pb2.SyncStatusRequest.SerializeToString,
+            request__response__pb2.SyncStatusResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -1235,6 +1590,40 @@ class HubService(object):
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
+    @staticmethod
+    def StreamSync(request_iterator,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.stream_stream(request_iterator, target, '/HubService/StreamSync',
+            request__response__pb2.StreamSyncRequest.SerializeToString,
+            request__response__pb2.StreamSyncResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def StreamFetch(request_iterator,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.stream_stream(request_iterator, target, '/HubService/StreamFetch',
+            request__response__pb2.StreamFetchRequest.SerializeToString,
+            request__response__pb2.StreamFetchResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
 
 class AdminServiceStub(object):
     """Missing associated documentation comment in .proto file."""
@@ -1255,15 +1644,10 @@ class AdminServiceStub(object):
                 request_serializer=request__response__pb2.Empty.SerializeToString,
                 response_deserializer=request__response__pb2.Empty.FromString,
                 )
-        self.SubmitIdRegistryEvent = channel.unary_unary(
-                '/AdminService/SubmitIdRegistryEvent',
-                request_serializer=id__registry__event__pb2.IdRegistryEvent.SerializeToString,
-                response_deserializer=id__registry__event__pb2.IdRegistryEvent.FromString,
-                )
-        self.SubmitNameRegistryEvent = channel.unary_unary(
-                '/AdminService/SubmitNameRegistryEvent',
-                request_serializer=name__registry__event__pb2.NameRegistryEvent.SerializeToString,
-                response_deserializer=name__registry__event__pb2.NameRegistryEvent.FromString,
+        self.SubmitOnChainEvent = channel.unary_unary(
+                '/AdminService/SubmitOnChainEvent',
+                request_serializer=onchain__event__pb2.OnChainEvent.SerializeToString,
+                response_deserializer=onchain__event__pb2.OnChainEvent.FromString,
                 )
 
 
@@ -1282,13 +1666,7 @@ class AdminServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def SubmitIdRegistryEvent(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def SubmitNameRegistryEvent(self, request, context):
+    def SubmitOnChainEvent(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -1307,15 +1685,10 @@ def add_AdminServiceServicer_to_server(servicer, server):
                     request_deserializer=request__response__pb2.Empty.FromString,
                     response_serializer=request__response__pb2.Empty.SerializeToString,
             ),
-            'SubmitIdRegistryEvent': grpc.unary_unary_rpc_method_handler(
-                    servicer.SubmitIdRegistryEvent,
-                    request_deserializer=id__registry__event__pb2.IdRegistryEvent.FromString,
-                    response_serializer=id__registry__event__pb2.IdRegistryEvent.SerializeToString,
-            ),
-            'SubmitNameRegistryEvent': grpc.unary_unary_rpc_method_handler(
-                    servicer.SubmitNameRegistryEvent,
-                    request_deserializer=name__registry__event__pb2.NameRegistryEvent.FromString,
-                    response_serializer=name__registry__event__pb2.NameRegistryEvent.SerializeToString,
+            'SubmitOnChainEvent': grpc.unary_unary_rpc_method_handler(
+                    servicer.SubmitOnChainEvent,
+                    request_deserializer=onchain__event__pb2.OnChainEvent.FromString,
+                    response_serializer=onchain__event__pb2.OnChainEvent.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -1362,7 +1735,7 @@ class AdminService(object):
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
-    def SubmitIdRegistryEvent(request,
+    def SubmitOnChainEvent(request,
             target,
             options=(),
             channel_credentials=None,
@@ -1372,25 +1745,8 @@ class AdminService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/AdminService/SubmitIdRegistryEvent',
-            id__registry__event__pb2.IdRegistryEvent.SerializeToString,
-            id__registry__event__pb2.IdRegistryEvent.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def SubmitNameRegistryEvent(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/AdminService/SubmitNameRegistryEvent',
-            name__registry__event__pb2.NameRegistryEvent.SerializeToString,
-            name__registry__event__pb2.NameRegistryEvent.FromString,
+        return grpc.experimental.unary_unary(request, target, '/AdminService/SubmitOnChainEvent',
+            onchain__event__pb2.OnChainEvent.SerializeToString,
+            onchain__event__pb2.OnChainEvent.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

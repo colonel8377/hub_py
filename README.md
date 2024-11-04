@@ -24,9 +24,11 @@ Exported revision 602.
 
 ## Examples
 
--   [Generate a chronological feed](./examples/chron_feed.py) using `asyncio`
--   [Building casts correctly](./examples/make_cast.py) including a patch to account for difference in serialization with `ts-proto` ([issue](https://github.com/farcasterxyz/hub-monorepo/issues/757))
--   [Write data for a user](./examples/write_data.py) including loading a Farcaster account from a mnemonic
+-   [Generate a chronological feed](src/examples/chron_feed.py) using `asyncio`
+-   [Building casts correctly](src/examples/make_cast.py) including a patch to account for difference in serialization with `ts-proto` ([issue](https://github.com/farcasterxyz/hub-monorepo/issues/757))
+
+
+## Environment
 
 For ease of use, the example scripts load data from a `.env` file:
 

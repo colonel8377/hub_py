@@ -5,7 +5,7 @@ from eth_account.messages import encode_structured_data
 from nacl.signing import SigningKey
 from nacl.encoding import RawEncoder
 
-from hub_py.generated.message_pb2 import SignatureScheme
+from src.hub_py.generated.message_pb2 import SignatureScheme
 
 
 class Signer(ABC):
