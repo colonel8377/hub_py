@@ -1,29 +1,30 @@
 import asyncio
 import re
 
-from hub_py.generated.message_pb2 import UserDataType, CastId, Message, ReactionType
-from hub_py.generated.request_response_pb2 import (
+from typing import Tuple
+
+from src.hub_py.generated.message_pb2 import CastId, Message, ReactionType, USER_DATA_TYPE_BIO
+from src.hub_py.generated.request_response_pb2 import (
     UserDataRequest,
     FidRequest,
     ReactionsByTargetRequest,
     MessagesResponse,
 )
-from hub_py.time import datetime_from_farcaster_time
-from .utils import get_env_client
+from src.hub_py.time import datetime_from_farcaster_time
+from utils import get_env_client
 
 
 async def main() -> None:
     client = get_env_client(use_async=True)
-
-    fid_to_fname = {}
     result = await asyncio.gather(
         *[
             client.GetUserData(
                 UserDataRequest(
-                    fid=fid, user_data_type=UserDataType.USER_DATA_TYPE_FNAME
+                    fid=fid,
+                    user_data_type=USER_DATA_TYPE_BIO
                 )
             )
-            for fid in range(1, 10)
+            for fid in range(1, 2)
         ]
     )
     fid_to_fname = {r.data.fid: r.data.user_data_body.value for r in result}
@@ -39,7 +40,7 @@ async def main() -> None:
 
     async def get_reactions_by_cast_id(
         m: Message,
-    ) -> tuple[int, bytes, int, int]:
+    ) -> Tuple[int, bytes, int, int]:
         # TODO: Pagination
         response = await client.GetReactionsByCast(
             ReactionsByTargetRequest(target_cast_id=CastId(fid=m.data.fid, hash=m.hash))
