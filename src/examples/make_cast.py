@@ -3,10 +3,9 @@ import grpc
 from src.hub_py.builders import make_cast_add
 from src.hub_py.generated.message_pb2 import (
     MessageData,
-    CastAddBody,
-    Embed,
+    CastAddBody, Embed,
 )
-from utils import get_env_signer, get_env_fid, get_env_client, get_env_network
+from utils import get_env_signer, get_env_fid, get_env_client, get_env_network, covert_farcaster_timestamp
 
 
 def main() -> None:
@@ -14,6 +13,7 @@ def main() -> None:
     message_data = MessageData(
         fid=get_env_fid(),
         network=get_env_network(),
+        timestamp=covert_farcaster_timestamp(),
     )
     signer = get_env_signer()
     casts = [
@@ -70,12 +70,13 @@ def main() -> None:
 
     for cast in casts:
         try:
-            result = client.SubmitMessage(
-                make_cast_add(
+            submit_msg = make_cast_add(
                     message_data,
                     signer,
                     cast,
-                )
+            )
+            result = client.SubmitMessage(
+                submit_msg
             )
             print(result.data.cast_add_body)
         except grpc.RpcError as e:

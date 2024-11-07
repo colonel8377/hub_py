@@ -1,8 +1,5 @@
 from blake3 import blake3
 
-from src.hub_py.generated.onchain_event_pb2 import SignerEventBody
-from src.hub_py.time import get_farcaster_time
-from src.hub_py.signers import Signer, Ed25519Signer
 from src.hub_py.generated.message_pb2 import (
     Message,
     MessageData,
@@ -10,9 +7,11 @@ from src.hub_py.generated.message_pb2 import (
     MessageType,
     # SignerAddBody,
     UserDataBody,
-    CastAddBody,
+    CastAddBody, CastRemoveBody,
 )
 from src.hub_py.protobuf_patch import patched_serialize_to_string
+from src.hub_py.signers import Signer
+from src.hub_py.time import get_farcaster_time
 
 
 def _make_message(data: MessageData, signer: Signer) -> Message:
@@ -52,6 +51,17 @@ def make_cast_add(data: MessageData, signer: Signer, cast_add: CastAddBody) -> M
     message_data.CopyFrom(data)
     message_data.type = MessageType.MESSAGE_TYPE_CAST_ADD
     message_data.cast_add_body.CopyFrom(cast_add)
+    return _make_message(
+        message_data,
+        signer,
+    )
+
+def make_cast_delete(data: MessageData, signer: Signer, cast_remove: CastRemoveBody) -> Message:
+    # Create a new MessageData object and copy the provided data
+    message_data = MessageData()
+    message_data.CopyFrom(data)
+    message_data.type = MessageType.MESSAGE_TYPE_CAST_REMOVE
+    message_data.cast_remove_body.CopyFrom(cast_remove)
     return _make_message(
         message_data,
         signer,

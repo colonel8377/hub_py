@@ -1,4 +1,5 @@
 import os
+import time
 
 from dotenv import load_dotenv
 from nacl.signing import SigningKey
@@ -13,11 +14,13 @@ from src.hub_py.generated.message_pb2 import FarcasterNetwork
 load_dotenv('../../.env')
 
 
-def get_env_client(use_async: bool = False) -> HubServiceStub:
+def get_env_client(use_async: bool = False, hub_address: str='') -> HubServiceStub:
+    hub_address = hub_address if hub_address and len(hub_address) >  0 else os.getenv('FARCASTER_HUB')
+    ssl = True if os.getenv("FARCASTER_USE_SSL") == "true" else False
     return (
-        get_ssl_client(os.environ["FARCASTER_HUB"], use_async)
-        if os.getenv("FARCASTER_USE_SSL") == "true"
-        else get_insecure_client(os.environ["FARCASTER_HUB"], use_async)
+        get_ssl_client(hub_address, use_async)
+        if ssl
+        else get_insecure_client(hub_address, use_async)
     )
 
 
@@ -48,3 +51,8 @@ def get_env_fid() -> int:
 
 def get_env_network() -> FarcasterNetwork:
     return getattr(FarcasterNetwork, os.environ["FARCASTER_NETWORK"].upper())
+
+def covert_farcaster_timestamp() -> int:
+    epoch = 1609459200
+    result = int(time.time()) - epoch
+    return result
