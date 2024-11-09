@@ -32,11 +32,18 @@ async def fetch_verification(fids: List) -> List:
 # Asynchronous function to insert verification data into the database
 async def insert_verification_data(pool, data: List[Tuple[int, int, int, str, str, str]]):
     async with pool.acquire() as conn:
-        insert_query = """
-        INSERT INTO verification (fid, network, timestamp, address, claim_signature, block_hash)
-        VALUES ($1, $2, $3, $4, $5, $6)
+        upsert_query = """
+        INSERT INTO verification (fid, network, timestamp, address, claim_signature, block_hash, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        ON CONFLICT (fid, address) 
+        DO UPDATE SET
+            network = EXCLUDED.network,
+            timestamp = EXCLUDED.timestamp,
+            claim_signature = EXCLUDED.claim_signature,
+            block_hash = EXCLUDED.block_hash
+            updated_at = CURRENT_TIMESTAMP  -- Update the timestamp on conflict
         """
-        await conn.executemany(insert_query, data)
+        await conn.executemany(upsert_query, data)
 
 
 # Main function to manage fetching and insertion in parallel
