@@ -14,8 +14,7 @@ from src.hub_py.generated.message_pb2 import FarcasterNetwork
 load_dotenv('../../.env')
 
 
-def get_env_client(hub_address, use_async: bool = False, ssl: bool = False) -> HubServiceStub:
-    hub_address = hub_address if hub_address and len(hub_address) >  0 else os.getenv('FARCASTER_HUB')
+def get_env_client(hub_address: str = os.getenv('FARCASTER_HUB'), use_async: bool = False, ssl: bool = False) -> HubServiceStub:
     ssl = True if os.getenv("FARCASTER_USE_SSL") == "true" else ssl
     return (
         get_ssl_client(hub_address, use_async)
