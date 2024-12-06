@@ -19,49 +19,49 @@ def main() -> None:
     casts = [
         # Example 1: A cast with no mentions
         CastAddBody(
-            text="This is a cast with no mentions",
+            text="2.This is a cast with no mentions",
             embeds=[],
             mentions=[],
             mentions_positions=[],
         ),
         # Example 2: A cast with mentions
         CastAddBody(
-            text=" and  are big fans of ",
+            text=" 2.and  are big fans of ",
             embeds=[],
             mentions=[3, 2, 1],
             mentions_positions=[0, 5, 22],
         ),
         # Example 3: A cast with mentions and an attachment
         CastAddBody(
-            text="Hey , check this out!",
+            text="2.Hey , check this out!",
             embeds=[Embed(url="https://farcaster.xyz")],
             mentions=[3],
             mentions_positions=[4],
         ),
         # Example 4: A cast with mentions and an attachment, and a link in the text
         CastAddBody(
-            text="Hey , check out https://farcaster.xyz!",
+            text="2.Hey , check out https://farcaster.xyz!",
             embeds=[Embed(url="https://farcaster.xyz")],
             mentions=[3],
             mentions_positions=[4],
         ),
         # Example 5: A cast with multiple mentions
         CastAddBody(
-            text="You can mention  multiple times:   ",
+            text="2.You can mention  multiple times:   ",
             embeds=[],
             mentions=[2, 2, 2, 2],
             mentions_positions=[16, 33, 34, 35],
         ),
         # Example 6: A cast with emoji and mentions
         CastAddBody(
-            text="🤓 can mention immediately after emoji",
+            text="2.🤓 can mention immediately after emoji",
             embeds=[],
             mentions=[1],
             mentions_positions=[4],
         ),
         # Example 7: A cast with emoji and a link in the text and an attachment
         CastAddBody(
-            text="🤓https://url-after-unicode.com can include URL immediately after emoji!!s",
+            text="2.🤓https://url-after-unicode.com can include URL immediately after emoji!!s",
             embeds=[Embed(url="https://url-after-unicode.com")],
             mentions=[],
             mentions_positions=[],

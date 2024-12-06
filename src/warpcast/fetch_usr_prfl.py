@@ -6,6 +6,7 @@ from contextlib import closing
 
 import psycopg2
 import requests
+import tqdm
 from psycopg2.extras import execute_values
 from requests.adapters import HTTPAdapter
 from requests.exceptions import RequestException
@@ -27,7 +28,7 @@ DB_CONFIG = {
 BASE_URL = "https://api.neynar.com/v2/farcaster/user/by_username"
 HEADERS = {
     "accept": "application/json",
-    "x-neynar-experimental": "true",
+    "x-warpcast-experimental": "true",
     "x-api-key": "B5F14029-CFF6-47F1-97FD-F6BC7866EC37",
 }
 BATCH_SIZE = 1000
@@ -112,9 +113,9 @@ def fetch_username_by_fid(fid):
 
 def fetch_usernames(fids):
     usernames = {}
-    with ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
+    with ThreadPoolExecutor(max_workers=os.cpu_count() * 100) as executor:
         futures = {executor.submit(fetch_username_by_fid, fid): fid for fid in fids}
-        for future in as_completed(futures):
+        for future in tqdm.tqdm(as_completed(futures)):
             fid, username = future.result()
             if username:
                 usernames[fid] = username
